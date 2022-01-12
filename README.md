@@ -1,4 +1,4 @@
 # PyML
 Python Modeling Library
 
-This is version 0.6.
+This is version 0.06.
