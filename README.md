@@ -1,7 +1,5 @@
-# PyML
-Python Modeling Library
-
-Version .06
+# Python Modeling Library (PyML)
+PyML Version .06
 
 Copyright (c) 2022 Ray Madachy
 
