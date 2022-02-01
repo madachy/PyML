@@ -137,7 +137,7 @@ def design_structure_matrix(elements, element_dependencies, filename=None, forma
     return dsm
 
 def wbs_diagram(decompositions, filename=None, format='svg', rankdir='TB'):
-    node_attr={'color': 'black', 'fontsize': '11',  'style': "box", 'shape':'box'} # 'fontname': 'arial',
+    node_attr={'color': 'black', 'fontsize': '11', 'shape':'box'} # 'fontname': 'arial',
     edge_attr={'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', }
     activity = graphviz.Digraph('G', filename=filename, node_attr=node_attr, edge_attr=edge_attr, engine="dot", format='svg')
     activity.attr(rankdir=rankdir, splines='ortho') # rankdir='LR'
@@ -150,7 +150,7 @@ def wbs_diagram(decompositions, filename=None, format='svg', rankdir='TB'):
 
 
 def critical_path_diagram(tasks, task_dependencies, filename=None, format='svg'):
-    node_attr={'color': 'black', 'fontsize': '11',  'style': "box", 'shape':'box'} # 'fontname': 'arial',
+    node_attr={'color': 'black', 'fontsize': '11', 'shape':'box'} # 'fontname': 'arial',
     edge_attr={'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', 'color': 'black'}
     critical_path = graphviz.Digraph('G', filename=filename, node_attr=node_attr, edge_attr=edge_attr, engine="dot", format='svg')
     critical_path.attr(rankdir='LR',)
@@ -177,7 +177,7 @@ def critical_path_diagram(tasks, task_dependencies, filename=None, format='svg')
 
 
 def tree(element_dependencies, filename=None, format='svg'):
-    node_attr={'color': 'black', 'fontsize': '11',  'style': "box", 'shape':'box'} # 'fontname': 'arial',
+    node_attr={'color': 'black', 'fontsize': '11',  'shape':'box'} # 'fontname': 'arial',
     edge_attr={'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', }
     activity = graphviz.Digraph('G', filename=filename, node_attr=node_attr, edge_attr=edge_attr, engine="dot", format='svg')
     activity.attr(rankdir='TB', splines='ortho') # rankdir='LR'
