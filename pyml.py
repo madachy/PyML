@@ -1,6 +1,7 @@
 import graphviz
 import textwrap
 import os
+from criticalpath import Node
 
 def context_diagram(system, external_systems, filename=None, format='svg', engine='dot'):
     node_attr={'color': 'black', 'fontsize': '11',  'shape':'box'} # 'fontname': 'arial', 
@@ -134,3 +135,55 @@ def design_structure_matrix(elements, element_dependencies, filename=None, forma
         dsm.render() # render and save file, clean up temporary dot source file (no extension) after successful rendering with (cleanup=True) doesn't work on windows "permission denied"
         #os.remove(filename) also doesn't work on windows "permission denied"
     return dsm
+
+def wbs_diagram(decompositions, filename=None, format='svg', rankdir='TB'):
+    node_attr={'color': 'black', 'fontsize': '11',  'style': "box", 'shape':'box'} # 'fontname': 'arial',
+    edge_attr={'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', }
+    activity = graphviz.Digraph('G', filename=filename, node_attr=node_attr, edge_attr=edge_attr, engine="dot", format='svg')
+    activity.attr(rankdir=rankdir, splines='ortho') # rankdir='LR'
+    activity.edges(decompositions)
+
+    if filename != None: 
+        activity.render() # render and save file, clean up temporary dot source file (no extension) after successful rendering with (cleanup=True) doesn't work on windows "permission denied"
+        #os.remove(filename) also doesn't work on windows "permission denied"
+    return activity
+
+
+def critical_path_diagram(tasks, task_dependencies, filename=None, format='svg'):
+    node_attr={'color': 'black', 'fontsize': '11',  'style': "box", 'shape':'box'} # 'fontname': 'arial',
+    edge_attr={'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', 'color': 'black'}
+    critical_path = graphviz.Digraph('G', filename=filename, node_attr=node_attr, edge_attr=edge_attr, engine="dot", format='svg')
+    critical_path.attr(rankdir='LR',)
+    
+    project = Node('')
+    [project.add(Node(task[0], duration=task[1]["Duration"])) for task in tasks]
+    [project.link(dependency[0],dependency[1]) for dependency in task_dependencies]  
+    project.update_all()
+    
+    crit_path = [str(n) for n in project.get_critical_path()]
+    critical_edges = [(n, crit_path[i+1]) for i, n in enumerate(crit_path[:-1])] 
+    non_critical_edges = list(set(task_dependencies) - set(critical_edges)) + list(set(critical_edges) - set(task_dependencies))
+    for edge in non_critical_edges:
+        critical_path.edge(edge[0], edge[1])
+        
+    for edge in critical_edges:
+        critical_path.edge(edge[0], edge[1], color="red")
+        
+    print(f"The critical path is: {crit_path} for a project duration of {project.duration} days.")
+
+    if filename != None: 
+        critical_path.render()
+    return critical_path
+
+
+def tree(element_dependencies, filename=None, format='svg'):
+    node_attr={'color': 'black', 'fontsize': '11',  'style': "box", 'shape':'box'} # 'fontname': 'arial',
+    edge_attr={'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', }
+    activity = graphviz.Digraph('G', filename=filename, node_attr=node_attr, edge_attr=edge_attr, engine="dot", format='svg')
+    activity.attr(rankdir='TB', splines='ortho') # rankdir='LR'
+    activity.edges(element_dependencies)
+
+    if filename != None: 
+        activity.render() # render and save file, clean up temporary dot source file (no extension) after successful rendering with (cleanup=True) doesn't work on windows "permission denied"
+        #os.remove(filename) also doesn't work on windows "permission denied"
+    return activity
