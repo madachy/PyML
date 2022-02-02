@@ -163,6 +163,10 @@ def critical_path_diagram(tasks, task_dependencies, filename=None, format='svg')
     crit_path = [str(n) for n in project.get_critical_path()]
     critical_edges = [(n, crit_path[i+1]) for i, n in enumerate(crit_path[:-1])] 
     non_critical_edges = list(set(task_dependencies) - set(critical_edges)) + list(set(critical_edges) - set(task_dependencies))
+    
+    for task in tasks:
+        critical_path.node(task[0], label=task[0] + ', ' + str(task[1]['Duration']))
+        
     for edge in non_critical_edges:
         critical_path.edge(edge[0], edge[1])
         
