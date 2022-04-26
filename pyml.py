@@ -218,6 +218,88 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
     fault_tree.attr(rankdir='TB', splines='polyline',  )
     
 
+    # create required SVG included files
+
+    and_node = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="50"
+   height="45"
+   id="svg2"
+   version="1.0"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs4" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+   <g transform="translate(-15.,0.0)"
+     id="layer1">
+     <path
+        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-anchor:start;display:inline;overflow:visible;visibility:visible;
+        fill:black;fill-opacity:1;
+        stroke:blue;stroke-width:0;
+        marker:none;enable-background:accumulate"
+        d="m 5.238095,45.238095 h 1.428571 37.142858 1.428571 V 43.809524 24.761905 c 0,-11.267908 -9.000045,-20 -20,-20 -10.999955,0 -20,8.732091 -20,20 0,0 0,0 0,19.047619 z m 2.857143,-2.857143 c 0,-7.977121 0,-13.061225 0,-15.238095 0,-1.190476 0,-1.785714 0,-2.083333 0,-0.14881 0,-0.230656 0,-0.267858 0,-0.0186 0,-0.02511 0,-0.02976 0,-9.760663 7.639955,-16.666667 17.142857,-16.666667 9.502902,0 17.142857,7.382195 17.142857,17.142857 v 17.142857 z"
+        id="path2884" />
+  </g>
+</svg>"""
+
+    or_node = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="50"
+   height="49"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+   <g transform="translate(-22.95,0.3)">
+  <path
+     fill="none"
+     stroke="#000000"
+     stroke-width="3"
+     d="M 48.32812,4.1093798 48.328126,0.04673552 M 48.32812,49.95376 48.32812,43.305394 48.32812,40.81263"
+     id="path380" />
+  <path
+     fill-rule="evenodd"
+     d="m 28.32812,49.23438 2.4375,-2 c 0,0 7.000049,-5.65625 17.5625,-5.65625 10.562451,0 17.5625,5.65625 17.5625,5.65625 l 2.4375,2 V 32.07813 c 10e-7,-2.408076 0.02451,-7.689699 -2.40625,-13.625 C 63.491106,12.517829 58.578604,5.9165938 49.04687,0.76562982 L 48.32812,2.0781298 47.60937,0.76562982 C 28.54371,11.068743 28.32812,27.321556 28.32812,32.07813 Z m 3,-5.875 V 32.07813 c 0,-4.684173 -0.130207,-18.28685 17,-27.9687502 8.429075,4.766786 12.68391,10.5212812 14.8125,15.7187502 2.195424,5.360661 2.187501,9.841925 2.1875,12.25 v 11.25 c -3.108434,-1.873588 -9.04935,-4.75 -17,-4.75 -7.973354,0 -13.900185,2.908531 -17,4.78125 z"
+     id="path382" />
+   </g>
+ </svg>"""
+ 
+    or_node_bottom = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="50"
+   height="49"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+   <g transform="translate(-22.95,0.3)">
+     <line x1="48.35" x2="48.35" y1="0" y2="3" stroke="black" stroke-width="3"/>
+   </g>
+ </svg>"""
+
+    f3 = open("AND_node.svg", "w")    
+    f3.write(and_node)
+    f3.close()
+
+    f2 = open("OR_node.svg", "w")    
+    f2.write(or_node)
+    f2.close()
+    
+    f2 = open("OR_node_bottom.svg", "w")    
+    f2.write(or_node_bottom)
+    f2.close()
     
     for node in ft:
         node_name, node_type, leafs = node[0], node[1], node[2]
