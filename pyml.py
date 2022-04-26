@@ -1,8 +1,79 @@
-from __future__ import print_function
 import graphviz
 import textwrap
 import os
 import sys
+from os.path import exists
+
+# text for SVG included files
+
+actor_svg = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   width="50"
+   height="100"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   id="svg30"
+   sodipodi:docname="actor.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <metadata
+     id="metadata36">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs34" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="2513"
+     inkscape:window-height="1533"
+     id="namedview32"
+     showgrid="false"
+     inkscape:zoom="8.5843373"
+     inkscape:cx="1.4561402"
+     inkscape:cy="58"
+     inkscape:window-x="535"
+     inkscape:window-y="435"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg30"
+     inkscape:document-rotation="0" />
+  <g
+     transform="matrix(0.68481344,0,0,0.83385173,-228.58233,-393.63174)"
+     style="fill:none;stroke:#000000;stroke-width:2.64666px"
+     id="g28">
+    <path
+       d="m 91.166271,19.719835 a 13.195118,13.068849 0 1 1 -26.390236,0 13.195118,13.068849 0 1 1 26.390236,0 z"
+       transform="matrix(1.131591,0,0,1.1425243,281.27172,471.26198)"
+       id="path24"
+       style="stroke-width:2.64666px" />
+    <path
+       d="m 77.497641,34.903691 v 46.056642 m 0,-0.56821 -19.445437,16.541248 M 77.529208,80.392123 98.868681,95.860084 M 57.073619,47.49903 98.931815,47.46746"
+       transform="translate(292,474.36218)"
+       id="path26"
+       style="stroke-width:2.64666px" />
+  </g>
+</svg>"""
 
 def context_diagram(system, external_systems, filename=None, format='svg', engine='dot'):
     node_attr = {'color': 'black', 'fontsize': '11',
@@ -21,7 +92,7 @@ def activity_diagram(element_dependencies, filename=None, format='svg'):
                  'style': "rounded", 'shape': 'box'}  # 'fontname': 'arial',
     edge_attr = {'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', }
     activity = graphviz.Digraph('G', filename=filename, node_attr=node_attr,
-                                edge_attr=edge_attr, engine="dot", format='svg')
+                                edge_attr=edge_attr, engine="dot", format=format)
     activity.attr(rankdir='LR',)
     activity.edges(element_dependencies)
 
@@ -31,16 +102,21 @@ def activity_diagram(element_dependencies, filename=None, format='svg'):
     return activity
 
 
-def use_case_diagram(system_name, actors, use_cases, interactions, use_case_relationships, filename):
+def use_case_diagram(system_name, actors, use_cases, interactions, use_case_relationships, filename=None, format='svg'):
     node_attr = {'color': 'black', 'fontname': 'arial',
                  'fontsize': '11',  'width': '0.'}
     edge_attr = {'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', }
     u = graphviz.Digraph('G', filename=filename, node_attr=node_attr,
-                         edge_attr=edge_attr, engine="neato", format='svg')
+                         edge_attr=edge_attr, engine="neato", format=format)
     system_height = len(use_cases) + .5
 
     u.node(system_name, label=f'''<<b>{system_name}</b>>''', pos=f'0,{(system_height+.5)/2}!',
            shape="box", height=f"{system_height}", width="2", labelloc="t")
+    
+    if exists("actor.svg") == False:
+        a = open("actor.svg", "w")
+        a.write(actor_svg)
+        a.close()
 
     column = -2
     for number, actor in enumerate(actors):
@@ -63,7 +139,7 @@ def use_case_diagram(system_name, actors, use_cases, interactions, use_case_rela
     return u
 
 
-def sequence_diagram(system_name, actors, objects, actions, filename):
+def sequence_diagram(system_name, actors, objects, actions, filename=None, format='svg'):
     verbose = False
     wrap_width = 40
     def wrap(text): return textwrap.fill(
@@ -73,7 +149,12 @@ def sequence_diagram(system_name, actors, objects, actions, filename):
                  'fontname': 'arial', 'fontsize': '11',  'width': '0.'}
     edge_attr = {'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', }
     g = graphviz.Digraph('G', filename=filename, graph_attr=graph_attr,
-                         node_attr=node_attr, edge_attr=edge_attr, engine="neato", format='svg')
+                         node_attr=node_attr, edge_attr=edge_attr, engine="neato", format=format)
+    
+    if exists("actor.svg") == False:
+        a = open("actor.svg", "w")
+        a.write(actor_svg)
+        a.close()
 
     # spread actors/objects apart on x-axis, differentiate actors from objects for images used
     object_spacing = 3
