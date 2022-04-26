@@ -206,6 +206,67 @@ def tree(element_dependencies, filename=None, format='svg'):
     return activity
 
 
+
+
+def fault_tree_diagram(ft, filename=None, format='svg'):
+    verbose = False
+    node_attr = {'color': 'black', 'fontsize': '11',
+                 'shape': 'plaintext'}  # 'fontname': 'arial',
+    edge_attr = {'arrowtail': 'none', 'arrowsize': '0', 'dir': 'both', 'penwidth': '2', 'fontname': 'arial', 'fontsize': '11', } #https://graphviz.org/docs/attr-types/arrowType/
+    fault_tree = graphviz.Digraph('G', filename=filename, node_attr=node_attr,
+                                edge_attr=edge_attr, engine="dot", format='svg')
+    fault_tree.attr(rankdir='TB', splines='polyline',  )
+    
+
+    
+    for node in ft:
+        node_name, node_type, leafs = node[0], node[1], node[2]
+        if verbose: print(f'{node[2]=} {node_name=}, {node_type=} {leafs=}')
+        #fault_tree.node(row[0], row[0]+' '+row[1])
+        if node_type == "basic" or node_type == "Basic" or node_type == "BASIC":
+            fault_tree.node(node_name, f'''<
+            <table border="0" cellborder="0" cellspacing="0" cellpadding="0">
+              <tr>
+            <td > 
+            <table border="0" cellborder="1" cellspacing="0" cellpadding="0">
+              <tr><td port="top">{node_name}</td></tr>
+            </table>
+            </td>
+              </tr>
+              <tr>
+                <td port="{node_type}"></td>  
+              </tr>
+              <tr>
+                <td></td> 
+              </tr>
+            </table>>''')
+        else:
+            fault_tree.node(node_name, f'''<
+            <table border="0" cellborder="0" cellspacing="0" cellpadding="0">
+              <tr>
+            <td > 
+            <table border="0" cellborder="1" cellspacing="0" cellpadding="0">
+              <tr><td port="top">{node_name}</td></tr>
+            </table>
+            </td>
+              </tr>
+              <tr>
+                <td port="{node_type}"><img src="{node_type}_node.svg"/></td>  
+              </tr>
+              <tr>
+                <td><img src="OR_node_bottom.svg"/></td> 
+              </tr>
+            </table>>''')
+        if verbose: print("Leaves")
+        for leaf in leafs:
+            if verbose: print(node_name,'->', leaf)
+            fault_tree.edge(node_name+':'+node_type+':s', leaf+':top:n') # leaf+':top:n' closer but not symmetrical
+            
+    if filename != None:
+        fault_tree.render()
+        
+    return fault_tree  
+
 """
 2013.3.12 CKS
 
@@ -721,3 +782,136 @@ def critical_path_diagram(tasks, task_dependencies, filename=None, format='svg')
     # next_priors.add(next_node)
     # q.append((next_node, next_priors))
     # return True
+
+
+def fault_tree_cutsets(fault_tree):
+    print("Cutsets: ", mocus(fault_tree))
+    
+'''
+===============================================================================
+    File name: cutsets.py
+    Authors: Umair Siddique, Ray Madachy
+    Description: Accepts a fault tree and generates the minimal cutsets
+    Licence: MIT
+===============================================================================
+'''
+import os
+import itertools
+import csv
+
+verbose = False
+
+class ErrorMsg(Exception):
+    pass
+
+class ErrorMsg(Exception):
+    """
+    Taken from https://community.esri.com/thread/140022
+    """
+    pass
+
+def get_ft(name):
+    ft = []
+    with open(name, newline='') as file:
+        reader = csv.reader(file)
+        ftt = list(map(tuple, reader))
+    for i in ftt:
+        if (i[1] == 'And' or i[1] == 'Or'):
+            ft.append((i[0], i[1], i[2].split()))
+        else:
+            raise ErrorMsg(
+                "Exception: Only And/OR gates are accepted in the Fault Tree")
+    return(ft)
+
+
+And = "And"
+Or = "Or"
+
+
+def rewrite_and(e, r, l):
+    r.remove(e)
+    for i in l:
+        r.append(i)
+    r.reverse()
+
+
+def rewrite_or(e, r, l):
+    new_rows = []
+    x = r
+    x.remove(e)
+    for i in l:
+        new_rows = new_rows + [([i] + x)]
+    return (new_rows)
+
+def top_to_init_path(te):
+    path = []
+    if te[0] == And or te[0] == "and" or te[0] == "AND":
+        path = path + [te[1]]
+    else:
+        for x in te[1]:
+            path = path + [[x]]
+    return(path)
+
+
+def cs_helper(i, j, p, dic_ft):
+    updated_paths = p
+    e = p[i][j]
+    row = p[i]
+    gate, inputs = dic_ft[e]
+    if gate == And or gate == "and" or gate == "AND":
+        rewrite_and(e, row, inputs)
+
+    else:
+        updated_paths.remove(p[i])
+        new_rows = rewrite_or(e, row, inputs)
+        updated_paths = updated_paths + new_rows
+    return(updated_paths)
+
+
+def find_element_to_expand(paths, d):
+    for row in paths:
+        for e in row:
+            try:
+                x = d[e]  # Optional -- we can return x as well
+                if verbose:  print(f'{x=} {row=} {e=}') # rm
+                return (paths.index(row), row.index(e))
+            except KeyError:
+                continue
+
+
+def mocus_init(ft):
+    global copy
+    copy = ft
+    ft  = [event for event in ft if event[1] != 'basic' if event[1] != 'Basic' if event[1] != 'BASIC']
+    top_name = ft[0][0]
+    dic_ft = dict([(k, [v, w]) for k, v, w in ft])
+    top = dic_ft[top_name]
+    ps = top_to_init_path(top)
+    if verbose: print(f'{dic_ft=}') # rm
+    if verbose: print(f'{ps=}') # rm
+
+    while True:
+        try:
+            i, j = find_element_to_expand(ps, dic_ft)
+            # print(f'{i=} {j=}') # rm
+            ps = cs_helper(i, j, ps, dic_ft)
+            #print(f'{ps=}') # rm
+        except BaseException:
+            break
+    return(ps)
+
+def mocus(fault_tree):
+    cs = []
+    cs = mocus_init(fault_tree)
+    css = list(map(lambda x: list(set(x)), cs))
+    css.sort(key=len)
+    for a, b in itertools.combinations(css, 2):
+        if verbose: print(set(a), set(b)) # rm
+        if set(a) <= set(b):
+            try:
+                css.remove(b)
+            except BaseException:
+                continue
+    if verbose: print(f'***{css=}') # rm
+    ft = copy
+    return(css)
