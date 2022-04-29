@@ -1,5 +1,5 @@
 # Python Modeling Library (PyML)
-PyML Version .15
+PyML Version .16
 
 Copyright (c) 2022 Ray Madachy
 
