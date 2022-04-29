@@ -1,3 +1,15 @@
+"""
+PyML Version .16
+
+Copyright (c) 2022 Ray Madachy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 import graphviz
 import textwrap
 import os
@@ -75,13 +87,15 @@ actor_svg = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
   </g>
 </svg>"""
 
-def context_diagram(system, external_systems, filename=None, format='svg', engine='dot'):
-    node_attr = {'color': 'black', 'fontsize': '11',
+def context_diagram(system, external_systems, filename=None, format='svg', engine='neato'):
+    node_attr = {'color': 'black', 'fontsize': '11', 'fontname': 'arial',
                  'shape': 'box'}  # 'fontname': 'arial',
     c = graphviz.Graph('G', node_attr=node_attr,
                        filename=filename, format=format, engine=engine)
+    
     for external_system in external_systems:
-        c.edge(system, external_system)
+        if (external_system == "User"): c.node(external_system, labelloc="b", image='actor.svg', shape='none')
+        c.edge(system, external_system, len="1.2") # len="1.2"
     if filename is not None:
         c.render()  # render and save file, clean up temporary dot source file (no extension) after successful rendering with (cleanup=True) doesn't work on windows "permission denied"
     return c
@@ -295,48 +309,23 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
                  'shape': 'plaintext'}  # 'fontname': 'arial',
     edge_attr = {'arrowtail': 'none', 'arrowsize': '0', 'dir': 'both', 'penwidth': '2', 'fontname': 'arial', 'fontsize': '11', } #https://graphviz.org/docs/attr-types/arrowType/
     fault_tree = graphviz.Digraph('G', filename=filename, node_attr=node_attr,
-                                edge_attr=edge_attr, engine="dot", format='svg')
+                                edge_attr=edge_attr, engine="dot", format=format)
     fault_tree.attr(rankdir='TB', splines='polyline',  )
     
 
     # create required SVG included files
 
     and_node = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    width="50"
-   height="45"
-   id="svg2"
-   version="1.0"
+   height="43"
+   transform="rotate(0) translate(2,-3)"
+   version="1.1"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:dc="http://purl.org/dc/elements/1.1/">
-  <defs
-     id="defs4" />
-  <metadata
-     id="metadata7">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-   <g transform="translate(-15.,0.0)"
-     id="layer1">
-     <path
-        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-anchor:start;display:inline;overflow:visible;visibility:visible;
-        fill:black;fill-opacity:1;
-        stroke:blue;stroke-width:0;
-        marker:none;enable-background:accumulate"
-        d="m 5.238095,45.238095 h 1.428571 37.142858 1.428571 V 43.809524 24.761905 c 0,-11.267908 -9.000045,-20 -20,-20 -10.999955,0 -20,8.732091 -20,20 0,0 0,0 0,19.047619 z m 2.857143,-2.857143 c 0,-7.977121 0,-13.061225 0,-15.238095 0,-1.190476 0,-1.785714 0,-2.083333 0,-0.14881 0,-0.230656 0,-0.267858 0,-0.0186 0,-0.02511 0,-0.02976 0,-9.760663 7.639955,-16.666667 17.142857,-16.666667 9.502902,0 17.142857,7.382195 17.142857,17.142857 v 17.142857 z"
-        id="path2884" />
-  </g>
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <path
+     d="M 2.8142723,45.422767 H 42.814272 v -20.47619 c 0,-11.267908 -9.000045,-19.9999998 -20,-19.9999998 -10.999955,0 -19.9999998,8.7320908 -19.9999998,19.9999998 z m 2.857143,-2.857143 V 24.946577 c 0,-9.760663 7.6399547,-16.6666667 17.1428567,-16.6666667 9.502902,0 17.142857,7.3821947 17.142857,17.1428567 v 17.142857 z"
+     id="path2" />
 </svg>"""
 
     or_node = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -378,9 +367,9 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
     f2.write(or_node)
     f2.close()
     
-    f2 = open("OR_node_bottom.svg", "w")    
-    f2.write(or_node_bottom)
-    f2.close()
+    f1 = open("OR_node_bottom.svg", "w")    
+    f1.write(or_node_bottom)
+    f1.close()
     
     for node in ft:
         node_name, node_type, leafs = node[0], node[1], node[2]
@@ -403,7 +392,7 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
                 <td></td> 
               </tr>
             </table>>''')
-        else:
+        if node_type == "or" or node_type == "Or" or node_type == "OR":
             fault_tree.node(node_name, f'''<
             <table border="0" cellborder="0" cellspacing="0" cellpadding="0">
               <tr>
@@ -414,7 +403,24 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
             </td>
               </tr>
               <tr>
-                <td port="{node_type}"><img src="{node_type}_node.svg"/></td>  
+                <td port="{node_type}"><img src="OR_node.svg"/></td>  
+              </tr>
+              <tr>
+                <td><img src="OR_node_bottom.svg"/></td> 
+              </tr>
+            </table>>''')
+        if node_type == "and" or node_type == "And" or node_type == "AND":
+            fault_tree.node(node_name, f'''<
+            <table border="0" cellborder="0" cellspacing="0" cellpadding="0">
+              <tr>
+            <td > 
+            <table border="0" cellborder="1" cellspacing="0" cellpadding="0">
+              <tr><td port="top">{node_name}</td></tr>
+            </table>
+            </td>
+              </tr>
+              <tr>
+                <td port="{node_type}"><img src="AND_node.svg"/></td>  
               </tr>
               <tr>
                 <td><img src="OR_node_bottom.svg"/></td> 
