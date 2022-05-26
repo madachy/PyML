@@ -1,5 +1,5 @@
 """
-PyML Version .16
+PyML Version .17
 
 Copyright (c) 2022 Ray Madachy
 
@@ -15,6 +15,8 @@ import textwrap
 import os
 import sys
 from os.path import exists
+import pandas as pd
+from copy import deepcopy
 
 # text for SVG included files
 
@@ -305,12 +307,15 @@ def tree(element_dependencies, filename=None, format='svg'):
 
 def fault_tree_diagram(ft, filename=None, format='svg'):
     verbose = False
+    wrap_width = 15
+    def wrap(text): return textwrap.fill(
+        text, width=wrap_width, break_long_words=False).replace("\n", "<BR/>")
     node_attr = {'color': 'black', 'fontsize': '11',
                  'shape': 'plaintext'}  # 'fontname': 'arial',
     edge_attr = {'arrowtail': 'none', 'arrowsize': '0', 'dir': 'both', 'penwidth': '2', 'fontname': 'arial', 'fontsize': '11', } #https://graphviz.org/docs/attr-types/arrowType/
     fault_tree = graphviz.Digraph('G', filename=filename, node_attr=node_attr,
                                 edge_attr=edge_attr, engine="dot", format=format)
-    fault_tree.attr(rankdir='TB', splines='polyline',  )
+    fault_tree.attr(rankdir='TB', splines='line',  ) # polyline
     
 
     # create required SVG included files
@@ -381,7 +386,7 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
               <tr>
             <td > 
             <table border="0" cellborder="1" cellspacing="0" cellpadding="0">
-              <tr><td port="top">{node_name}</td></tr>
+              <tr><td port="top">{wrap(node_name)}</td></tr>
             </table>
             </td>
               </tr>
@@ -398,7 +403,7 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
               <tr>
             <td > 
             <table border="0" cellborder="1" cellspacing="0" cellpadding="0">
-              <tr><td port="top">{node_name}</td></tr>
+              <tr><td port="top">{wrap(node_name)}</td></tr>
             </table>
             </td>
               </tr>
@@ -415,7 +420,7 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
               <tr>
             <td > 
             <table border="0" cellborder="1" cellspacing="0" cellpadding="0">
-              <tr><td port="top">{node_name}</td></tr>
+              <tr><td port="top">{wrap(node_name)}</td></tr>
             </table>
             </td>
               </tr>
@@ -429,12 +434,32 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
         if verbose: print("Leaves")
         for leaf in leafs:
             if verbose: print(node_name,'->', leaf)
-            fault_tree.edge(node_name+':'+node_type+':s', leaf+':top:n') # leaf+':top:n' closer but not symmetrical
+            if leaf != '':fault_tree.edge(node_name+':'+node_type+':s', leaf+':top:n') # leaf+':top:n' closer but not symmetrical
             
     if filename != None:
         fault_tree.render()
         
     return fault_tree  
+
+def read_fault_tree_excel(filename):
+    df = pd.read_excel(filename,
+            index_col=0,            # the first column contains the index labels (numbers assigned otherwise)
+            # skipfooter=2,           # ignore the last two lines of the sheet
+            #header=0,               # take the column names from the second row
+            #usecols='A:S',          # use these Excel columns
+            #sheet_name='Sheet1'  # take data from this sheet
+            ) 
+    df = df.fillna('') # replace NaNs to blanks
+    
+    fault_tree_list_of_lists = [] 
+    for index in df.index:
+         fault_tree_list_of_lists.append([index, df['Type'][index], [df['Branch 1'][index], df['Branch 2'][index], df['Branch 3'][index], df['Branch 4'][index], df['Branch 5'][index], df['Branch 6'][index]], ])
+    for event in fault_tree_list_of_lists:
+        event[2] = [branch for branch in event[2] if branch !=''] # delete blank fields
+    
+    # convert each event list to tuple
+    fault_tree_list = [tuple(event) for event in fault_tree_list_of_lists]
+    return fault_tree_list
 
 """
 2013.3.12 CKS
@@ -954,7 +979,10 @@ def critical_path_diagram(tasks, task_dependencies, filename=None, format='svg')
 
 
 def fault_tree_cutsets(fault_tree):
-    print("Cutsets: ", mocus(fault_tree))
+    cutsets = mocus(fault_tree)
+    print("Cutsets:\nNumber  Event List")
+    for num, cutset in enumerate(cutsets):
+        print(num+1,'  ', cutset)
     
 '''
 ===============================================================================
@@ -1070,8 +1098,10 @@ def mocus_init(ft):
     return(ps)
 
 def mocus(fault_tree):
+    verbose = False
+    fault_tree_copy = deepcopy(fault_tree) # to avoid top row "and" rewrite in cs_helper
     cs = []
-    cs = mocus_init(fault_tree)
+    cs = mocus_init(fault_tree_copy)
     css = list(map(lambda x: list(set(x)), cs))
     css.sort(key=len)
     for a, b in itertools.combinations(css, 2):
