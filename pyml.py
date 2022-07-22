@@ -1,5 +1,5 @@
 """
-PyML Version .17
+PyML Version .19
 
 Copyright (c) 2022 Ray Madachy
 
@@ -90,14 +90,19 @@ actor_svg = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 </svg>"""
 
 def context_diagram(system, external_systems, filename=None, format='svg', engine='neato'):
+    wrap_width = 20
+    def wrap(text): return textwrap.fill(
+        text, width=wrap_width, break_long_words=False)
     node_attr = {'color': 'black', 'fontsize': '11', 'fontname': 'arial',
                  'shape': 'box'}  # 'fontname': 'arial',
     c = graphviz.Graph('G', node_attr=node_attr,
                        filename=filename, format=format, engine=engine)
-    
+
+    human_actor_keywords = ["User", "user", "Customer", "customer", "Operator", "Patient", "Doctor", "operator"]
+
     for external_system in external_systems:
-        if (external_system == "User"): c.node(external_system, labelloc="b", image='actor.svg', shape='none')
-        c.edge(system, external_system, len="1.2") # len="1.2"
+        if (external_system in human_actor_keywords): c.node(wrap(external_system), labelloc="b", image='actor.svg', shape='none')
+        c.edge(wrap(system), wrap(external_system), len="1.2") # len="1.2"
     if filename is not None:
         c.render()  # render and save file, clean up temporary dot source file (no extension) after successful rendering with (cleanup=True) doesn't work on windows "permission denied"
     return c
@@ -119,6 +124,9 @@ def activity_diagram(element_dependencies, filename=None, format='svg'):
 
 
 def use_case_diagram(system_name, actors, use_cases, interactions, use_case_relationships, filename=None, format='svg'):
+    wrap_width = 15
+    def wrap(text): return textwrap.fill(
+        text, width=wrap_width, break_long_words=False)
     node_attr = {'color': 'black', 'fontname': 'arial',
                  'fontsize': '11',  'width': '0.'}
     edge_attr = {'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', }
@@ -128,7 +136,7 @@ def use_case_diagram(system_name, actors, use_cases, interactions, use_case_rela
 
     u.node(system_name, label=f'''<<b>{system_name}</b>>''', pos=f'0,{(system_height+.5)/2}!',
            shape="box", height=f"{system_height}", width="2", labelloc="t")
-    
+
     if exists("actor.svg") == False:
         a = open("actor.svg", "w")
         a.write(actor_svg)
@@ -138,16 +146,16 @@ def use_case_diagram(system_name, actors, use_cases, interactions, use_case_rela
     for number, actor in enumerate(actors):
         division = system_height / (len(actors) + 1)
         #print (division)
-        u.node(actor, pos=f'{column}, {system_height - division*(number+1) + .25}!',
+        u.node(wrap(actor), pos=f'{column}, {system_height - division*(number+1) + .25}!',
                width='.1', shape='none', image='actor.svg', labelloc='b')
 
     column = 0
     for number, use_case in enumerate(use_cases):
         u.node(
-            use_case, pos=f'{column}, {len(use_cases)-number}!', width='1.25', height=".7")
+            wrap(use_case), pos=f'{column}, {len(use_cases)-number}!', width='1.25', height=".7")
 
     for edge in (interactions):
-        u.edge(edge[0], edge[1])  # lhead='clusterx' not used
+        u.edge(wrap(edge[0]), wrap(edge[1]))  # lhead='clusterx' not used
 
     if filename != None:
         u.render()  # render and save file, clean up temporary dot source file (no extension) after successful rendering with (cleanup=True) doesn't work on windows "permission denied"
@@ -166,7 +174,7 @@ def sequence_diagram(system_name, actors, objects, actions, filename=None, forma
     edge_attr = {'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', }
     g = graphviz.Digraph('G', filename=filename, graph_attr=graph_attr,
                          node_attr=node_attr, edge_attr=edge_attr, engine="neato", format=format)
-    
+
     if exists("actor.svg") == False:
         a = open("actor.svg", "w")
         a.write(actor_svg)
@@ -316,43 +324,49 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
     fault_tree = graphviz.Digraph('G', filename=filename, node_attr=node_attr,
                                 edge_attr=edge_attr, engine="dot", format=format)
     fault_tree.attr(rankdir='TB', splines='line',  ) # polyline
-    
+
 
     # create required SVG included files
 
     and_node = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    width="50"
-   height="43"
-   transform="rotate(0) translate(2,-3)"
+   height="45"
+   transform="rotate(0) translate(0,0)"
    version="1.1"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <path
-     d="M 2.8142723,45.422767 H 42.814272 v -20.47619 c 0,-11.267908 -9.000045,-19.9999998 -20,-19.9999998 -10.999955,0 -19.9999998,8.7320908 -19.9999998,19.9999998 z m 2.857143,-2.857143 V 24.946577 c 0,-9.760663 7.6399547,-16.6666667 17.1428567,-16.6666667 9.502902,0 17.142857,7.3821947 17.142857,17.1428567 v 17.142857 z"
-     id="path2" />
+     fill="none"
+     stroke="#000000"
+     stroke-width="2.61613"
+     d="M 24.909933,5.0655629 V 0.01801368"
+     id="top_connector" />
+  <path
+     d="M 5.0927534,45.391608 H 45.092753 v -20.47619 c 0,-11.267907 -9.000045,-19.9999995 -20,-19.9999995 -10.999955,0 -19.9999997,8.7320915 -19.9999997,19.9999995 z m 2.857143,-2.857143 V 24.915418 c 0,-9.760663 7.6399546,-16.6666664 17.1428566,-16.6666664 9.502902,0 17.142857,7.3821944 17.142857,17.1428564 v 17.142857 z"
+     id="and_symbol" />
 </svg>"""
 
     or_node = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    width="50"
-   height="49"
+   height="52"
    version="1.1"
    xmlns="http://www.w3.org/2000/svg">
-   <g transform="translate(-22.95,0.3)">
-  <path
-     fill="none"
-     stroke="#000000"
-     stroke-width="3"
-     d="M 48.32812,4.1093798 48.328126,0.04673552 M 48.32812,49.95376 48.32812,43.305394 48.32812,40.81263"
-     id="path380" />
-  <path
-     fill-rule="evenodd"
-     d="m 28.32812,49.23438 2.4375,-2 c 0,0 7.000049,-5.65625 17.5625,-5.65625 10.562451,0 17.5625,5.65625 17.5625,5.65625 l 2.4375,2 V 32.07813 c 10e-7,-2.408076 0.02451,-7.689699 -2.40625,-13.625 C 63.491106,12.517829 58.578604,5.9165938 49.04687,0.76562982 L 48.32812,2.0781298 47.60937,0.76562982 C 28.54371,11.068743 28.32812,27.321556 28.32812,32.07813 Z m 3,-5.875 V 32.07813 c 0,-4.684173 -0.130207,-18.28685 17,-27.9687502 8.429075,4.766786 12.68391,10.5212812 14.8125,15.7187502 2.195424,5.360661 2.187501,9.841925 2.1875,12.25 v 11.25 c -3.108434,-1.873588 -9.04935,-4.75 -17,-4.75 -7.973354,0 -13.900185,2.908531 -17,4.78125 z"
-     id="path382" />
+   <g transform="translate(-22.95,2.65)">
+    <path
+       fill="none"
+       stroke="#000000"
+       stroke-width="2.5"
+       d="M 48.32812,4.1093798 48.328126,-3 m -6e-6,52.95376 V 43.305394 40.81263"
+       id="connectors" />
+    <path
+       fill-rule="evenodd"
+       d="m 28.32812,49.23438 2.4375,-2 c 0,0 7.000049,-5.65625 17.5625,-5.65625 10.562451,0 17.5625,5.65625 17.5625,5.65625 l 2.4375,2 V 32.07813 c 10e-7,-2.408076 0.02451,-7.689699 -2.40625,-13.625 C 63.491106,12.517829 58.578604,5.9165938 49.04687,0.76562982 L 48.32812,2.0781298 47.60937,0.76562982 C 28.54371,11.068743 28.32812,27.321556 28.32812,32.07813 Z m 3,-5.875 V 32.07813 c 0,-4.684173 -0.130207,-18.28685 17,-27.9687502 8.429075,4.766786 12.68391,10.5212812 14.8125,15.7187502 2.195424,5.360661 2.187501,9.841925 2.1875,12.25 v 11.25 c -3.108434,-1.873588 -9.04935,-4.75 -17,-4.75 -7.973354,0 -13.900185,2.908531 -17,4.78125 z"
+       id="path382" />
    </g>
  </svg>"""
- 
+
     or_node_bottom = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    width="50"
@@ -360,22 +374,22 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
    version="1.1"
    xmlns="http://www.w3.org/2000/svg">
    <g transform="translate(-22.95,0.3)">
-     <line x1="48.35" x2="48.35" y1="0" y2="3" stroke="black" stroke-width="3"/>
+     <line x1="48.35" x2="48.35" y1="0" y2="3" stroke="black" stroke-width="2.5"/>
    </g>
  </svg>"""
 
-    f3 = open("AND_node.svg", "w")    
+    f3 = open("AND_node.svg", "w")
     f3.write(and_node)
     f3.close()
 
-    f2 = open("OR_node.svg", "w")    
+    f2 = open("OR_node.svg", "w")
     f2.write(or_node)
     f2.close()
-    
-    f1 = open("OR_node_bottom.svg", "w")    
+
+    f1 = open("OR_node_bottom.svg", "w")
     f1.write(or_node_bottom)
     f1.close()
-    
+
     for node in ft:
         node_name, node_type, leafs = node[0], node[1], node[2]
         if verbose: print(f'{node[2]=} {node_name=}, {node_type=} {leafs=}')
@@ -384,62 +398,62 @@ def fault_tree_diagram(ft, filename=None, format='svg'):
             fault_tree.node(node_name, f'''<
             <table border="0" cellborder="0" cellspacing="0" cellpadding="0">
               <tr>
-            <td > 
+            <td >
             <table border="0" cellborder="1" cellspacing="0" cellpadding="0">
               <tr><td port="top">{wrap(node_name)}</td></tr>
             </table>
             </td>
               </tr>
               <tr>
-                <td port="{node_type}"></td>  
+                <td port="{node_type}"></td>
               </tr>
               <tr>
-                <td></td> 
+                <td></td>
               </tr>
             </table>>''')
         if node_type == "or" or node_type == "Or" or node_type == "OR":
             fault_tree.node(node_name, f'''<
             <table border="0" cellborder="0" cellspacing="0" cellpadding="0">
               <tr>
-            <td > 
+            <td >
             <table border="0" cellborder="1" cellspacing="0" cellpadding="0">
               <tr><td port="top">{wrap(node_name)}</td></tr>
             </table>
             </td>
               </tr>
               <tr>
-                <td port="{node_type}"><img src="OR_node.svg"/></td>  
+                <td port="{node_type}"><img src="OR_node.svg"/></td>
               </tr>
               <tr>
-                <td><img src="OR_node_bottom.svg"/></td> 
+                <td><img src="OR_node_bottom.svg"/></td>
               </tr>
             </table>>''')
         if node_type == "and" or node_type == "And" or node_type == "AND":
             fault_tree.node(node_name, f'''<
             <table border="0" cellborder="0" cellspacing="0" cellpadding="0">
               <tr>
-            <td > 
+            <td >
             <table border="0" cellborder="1" cellspacing="0" cellpadding="0">
               <tr><td port="top">{wrap(node_name)}</td></tr>
             </table>
             </td>
               </tr>
               <tr>
-                <td port="{node_type}"><img src="AND_node.svg"/></td>  
+                <td port="{node_type}"><img src="AND_node.svg"/></td>
               </tr>
               <tr>
-                <td><img src="OR_node_bottom.svg"/></td> 
+                <td><img src="OR_node_bottom.svg"/></td>
               </tr>
             </table>>''')
         if verbose: print("Leaves")
         for leaf in leafs:
             if verbose: print(node_name,'->', leaf)
             if leaf != '':fault_tree.edge(node_name+':'+node_type+':s', leaf+':top:n') # leaf+':top:n' closer but not symmetrical
-            
+
     if filename != None:
         fault_tree.render()
-        
-    return fault_tree  
+
+    return fault_tree
 
 def read_fault_tree_excel(filename):
     df = pd.read_excel(filename,
@@ -448,15 +462,15 @@ def read_fault_tree_excel(filename):
             #header=0,               # take the column names from the second row
             #usecols='A:S',          # use these Excel columns
             #sheet_name='Sheet1'  # take data from this sheet
-            ) 
+            )
     df = df.fillna('') # replace NaNs to blanks
-    
-    fault_tree_list_of_lists = [] 
+
+    fault_tree_list_of_lists = []
     for index in df.index:
          fault_tree_list_of_lists.append([index, df['Type'][index], [df['Branch 1'][index], df['Branch 2'][index], df['Branch 3'][index], df['Branch 4'][index], df['Branch 5'][index], df['Branch 6'][index]], ])
     for event in fault_tree_list_of_lists:
         event[2] = [branch for branch in event[2] if branch !=''] # delete blank fields
-    
+
     # convert each event list to tuple
     fault_tree_list = [tuple(event) for event in fault_tree_list_of_lists]
     return fault_tree_list
@@ -978,20 +992,73 @@ def critical_path_diagram(tasks, task_dependencies, filename=None, format='svg')
     # return True
 
 
+# determine fault tree node levels and assign them in dictionary
+def assign_levels(events_quant_dict, event, level):
+    for branch in events_quant_dict[event]['branches']:
+        events_quant_dict[branch]['level'] = level + 1
+        assign_levels(events_quant_dict, branch, level + 1)
+
+
+def draw_fault_tree_diagram_quantitative(ft, filename=None, format='svg'):
+
+    or_nodes = ['Or', 'or', 'OR']
+    and_nodes = ['And', 'and', 'AND']
+    basic_nodes = ['Basic', 'basic', 'BASIC']
+    prob_string = lambda event_name, probability : f"<br/>p={events_quant_dict[event_name]['prob']:.1e}" if (probability<.001) else f"<br/>p={events_quant_dict[event_name]['prob']:.3f}".rstrip('0')
+
+    # convert fault tree input to dictionary
+    top_name, top_condition, top_branches = ft[0][0], ft[0][1], ft[0][3]
+    events_quant_dict = {top_name: {'type': top_condition, 'prob': '', 'state': False , 'branches' : top_branches}} # calculate this
+    events_quant_dict.update({event[0]:{'type': event[1],'prob': event[2], 'state': False, 'branches' : []} for event in ft if event[1] in basic_nodes})
+    events_quant_dict.update({event[0]:{'type': event[1], 'prob': '', 'state': True, 'branches' : event[3]} for event in ft if event[1] in and_nodes}) # default True until False found
+    events_quant_dict.update({event[0]:{'type': event[1], 'prob': '', 'state': False, 'branches' : event[3]} for event in ft if event[1] in or_nodes}) # default False until True found
+
+    root_event = list(events_quant_dict.keys())[0]
+    events_quant_dict[root_event]['level'] = 1
+    assign_levels(events_quant_dict, root_event, 1)
+
+    # compute probabilities and states
+    max_level = max([events_quant_dict[event]['level'] for event in events_quant_dict])
+    for level in range(max_level, 0, -1):
+        for event in events_quant_dict:
+            if events_quant_dict[event]['level'] == level:
+                # ands
+                 if events_quant_dict[event]['type'] in and_nodes:
+                     probability = 1
+                     events_quant_dict[event]['state'] = True  # default True until False found
+                     for basic_event in events_quant_dict[event]['branches']: # the branches
+                         if events_quant_dict[basic_event]['state'] is False:
+                             events_quant_dict[event]['state'] = False
+                         probability *= events_quant_dict[basic_event]['prob']
+                     events_quant_dict[event]['prob'] = probability
+                # ors
+                 if events_quant_dict[event]['type'] in or_nodes:
+                     probability = 0
+                     events_quant_dict[event]['state'] = False  # default False until True found
+                     for basic_event in events_quant_dict[event]['branches']: # the branches
+                         if events_quant_dict[basic_event]['state'] is True:
+                             events_quant_dict[event]['state'] = True
+                         probability += events_quant_dict[basic_event]['prob']
+                     events_quant_dict[event]['prob'] = probability
+
+    # make labels with probabilities by renaming nodes
+    events_quant_dict_labeled = {event+prob_string(event, events_quant_dict[event]['prob']): {'type': events_quant_dict[event]['type'], 'prob': events_quant_dict[event]['prob'], 'state': events_quant_dict[event]['state'], 'branches': events_quant_dict[event]['branches']} for event in events_quant_dict}
+
+    for event in events_quant_dict:
+        for index, branch in enumerate(events_quant_dict[event]['branches']):
+            branch_label = branch+prob_string(branch, events_quant_dict[branch]['prob'])
+            events_quant_dict_labeled[event+prob_string(event, events_quant_dict[event]['prob'])]['branches'][index] = branch_label
+
+    simple_ft_quantititive = [(event, events_quant_dict_labeled[event]['type'], events_quant_dict_labeled[event]['branches']) for event in events_quant_dict_labeled]
+
+    return(fault_tree_diagram(simple_ft_quantititive, filename=filename, format=format))
+
 def fault_tree_cutsets(fault_tree):
     cutsets = mocus(fault_tree)
-    print("Cutsets:\nNumber  Event List")
+    print("Minimal Cutsets:\nNumber  Event List")
     for num, cutset in enumerate(cutsets):
         print(num+1,'  ', cutset)
-    
-'''
-===============================================================================
-    File name: cutsets.py
-    Authors: Umair Siddique, Ray Madachy
-    Description: Accepts a fault tree and generates the minimal cutsets
-    Licence: MIT
-===============================================================================
-'''
+
 import os
 import itertools
 import csv
@@ -1098,6 +1165,14 @@ def mocus_init(ft):
     return(ps)
 
 def mocus(fault_tree):
+    '''
+    ===============================================================================
+        MOCUS algorithm for finding cutsets
+        Authors: Umair Siddique, Ray Madachy
+        Description: Accepts a fault tree and generates the minimal cutsets
+        License: MIT
+    ===============================================================================
+    '''
     verbose = False
     fault_tree_copy = deepcopy(fault_tree) # to avoid top row "and" rewrite in cs_helper
     cs = []
