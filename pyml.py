@@ -90,6 +90,26 @@ actor_svg = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 </svg>"""
 
 def context_diagram(system, external_systems, filename=None, format='svg', engine='neato'):
+    """
+    Returns a context diagram.
+
+    Parameters
+    ----------
+    system_name : string
+        The name of the system to label the diagram.
+    external_systems : list of strings
+        Names of the external systems that interact with the system in a list.
+    filename : string, optional
+        A filename for the output not including a filename extension. The extension will specified by the format parameter.
+    format : string, optional
+        The file format of the graphic output. Note that bitmap formats (png, bmp, or jpeg) will not be as sharp as the default svg vector format and most particularly when magnified.
+
+    Returns
+    -------
+    g : graph object view
+        Save the graph source code to file, and open the rendered result in its default viewing application. PyML calls the Graphviz API for this.
+
+    """
     wrap_width = 20
     def wrap(text): return textwrap.fill(
         text, width=wrap_width, break_long_words=False)
@@ -124,6 +144,31 @@ def activity_diagram(element_dependencies, filename=None, format='svg'):
 
 
 def use_case_diagram(system_name, actors, use_cases, interactions, use_case_relationships, filename=None, format='svg'):
+    """ Draw a use case diagram.
+
+    Parameters
+    ----------
+    system_name : string
+        The name of the system to label the diagram.
+    actors : list of strings
+        Names of the outside actors that interact with the system in the use cases in a list.
+    use_cases : list of strings
+        Names of the use cases in a list.
+    interactions : list of tuples
+        A list of the interactions to be drawn between actors and use cases. Each interaction is a tuple containing an actor and use case in the form ("actor name", "use case name") indicating an arrow drawn from the actor to the use case. Interactions are graph edges.
+    use_case_relationships : list of tuples, optional
+        A list of the relationships, or associations to be drawn between use cases. Each relationship is a tuple containing a use case pair and type relationship in the form ("use case 1", "use case 2", "relationship") indicating an arrow drawn from the first to the second use case. Relationship types are "<<include>>", "<<extend>>" and "generalization".
+    filename : string, optional
+        A filename for the output not including a filename extension. The extension will specified by the format parameter.
+    format : string, optional
+        The file format of the graphic output. Note that bitmap formats (png, bmp, or jpeg) will not be as sharp as the default svg vector format and most particularly when magnified.
+
+    Returns
+    -------
+    g : graph object view
+        Save the graph source code to file, and open the rendered result in its default viewing application. PyML calls the Graphviz API for this.
+
+    """
     wrap_width = 15
     def wrap(text): return textwrap.fill(
         text, width=wrap_width, break_long_words=False)
@@ -164,6 +209,29 @@ def use_case_diagram(system_name, actors, use_cases, interactions, use_case_rela
 
 
 def sequence_diagram(system_name, actors, objects, actions, filename=None, format='svg'):
+    """ Returns a sequence diagram.
+
+    Parameters
+    ----------
+    system_name : string
+        The name of the system to label the diagram.
+    actors : list of strings
+        Names of the outside actors that participate in the activity sequence in a list.
+    objects : list of strings
+        Names of the system objects that participate in the activity sequence in a list.
+    actions : list of tuples
+        A chronologically ordered list describing the sequence of actions to be drawn. Each action is a tuple containing the action source, target and action name (or data/control passed) in the form ("source", "target", "action name") indicating a labeled horizontal arrow drawn between them.
+    filename : string, optional
+        A filename for the output not including a filename extension. The extension will specified by the format parameter.
+    format : string, optional
+        The file format of the graphic output. Note that bitmap formats (png, bmp, or jpeg) will not be as sharp as the default svg vector format and most particularly when magnified.
+
+    Returns
+    -------
+    g : graph object view
+        Save the graph source code to file, and open the rendered result in its default viewing application. PyML calls the Graphviz API for this.
+
+    """
     verbose = False
     wrap_width = 40
     def wrap(text): return textwrap.fill(
@@ -235,6 +303,26 @@ def sequence_diagram(system_name, actors, objects, actions, filename=None, forma
 
 
 def design_structure_matrix(elements, element_dependencies, filename=None, format='svg'):
+    """
+    Draw a design structure matrix of system elements and their dependencies. Matrix elements may represent tasks (process activities), system parameters or attributes.
+
+    Parameters
+    ----------
+    elements : list of strings
+        Names of the matrix elements as the row and column headings in a list.
+    element_dependencies : list of tuples
+        A list of tuples describing the relationships between elements. Each relationship is a tuple containing the relationship input element, output element and optionally a custom label (or other object) to mark the relationship in the form ("input element", "output element", "relationship label"). The default marking denoting a relationship is an uppercase 'X', therefore, the shortened tuple relationship ("input element", "output element") is equivalent to ("input element", "output element", "X"). A custom label can be specified as html code for styling of the font type, font color, cell color, etc. Images and unicode characters can be inserted this way, or other html markup for lists, tables, etc.
+    filename : string, optional
+        A filename for the output not including a filename extension. The extension will specified by the format parameter.
+    format : string, optional
+        The file format of the graphic output. Note that bitmap formats (png, bmp, or jpeg) will not be as sharp as the default svg vector format and most particularly when magnified.
+
+    Returns
+    -------
+    g : graph object view
+        The rendered graph for display. It will be automatically displayed in Jupyter Notebooks or IPython consoles. With other Python editors it can be displayed in the associated console by typing the returned graph name (e.g., call the function with an assignment such as ``dsm = design_structure_matrix(...)`` and then type ``dsm`` in the console). If a filename is optionally provided, the rendered graph will also be saved as a file in the specified format. PyML calls the Graphviz API for this.
+
+    """
     cell_width = 20  # pixels
 
     dependency_elements = [dependency[0:2]
@@ -282,6 +370,26 @@ def design_structure_matrix(elements, element_dependencies, filename=None, forma
 
 
 def wbs_diagram(decompositions, filename=None, format='svg', rankdir='TB'):
+    """
+    Draw a work breakdown structure as a tree hierarchy. Decompositions describe the parent-child relationships.
+
+    Parameters
+    ----------
+    decompositions : list of tuples
+        A list of tuples describing the work decomposition relationships. Each relationship is a tuple containing the parent element followed by the child element.
+    filename : string, optional
+        A filename for the output not including a filename extension. The extension will specified by the format parameter.
+    format : string, optional
+        The file format of the graphic output. Note that bitmap formats (png, bmp, or jpeg) will not be as sharp as the default svg vector format and most particularly when magnified.
+    rankdir : string, optional
+        The direction to display the tree from the parent node. The default ``rankdir='TB'`` denotes top to bottom for a vertical tree decomposition. It can diagrammed horizontally by providing rankdir='LR' to designate left to right.
+
+    Returns
+    -------
+    g : graph object view
+        The rendered graph for display. It will be automatically displayed in Jupyter Notebooks or IPython consoles. With other Python editors it can be displayed in the associated console by typing the returned graph name (e.g., call the function with an assignment such as ``wbs = wbs_diagram(...)`` and then type ``wbs`` in the console). If a filename is optionally provided, the rendered graph will also be saved as a file in the specified format. PyML calls the Graphviz API for this.
+
+    """
     node_attr = {'color': 'black', 'fontsize': '11',
                  'shape': 'box'}  # 'fontname': 'arial',
     edge_attr = {'arrowsize': '.5', 'fontname': 'arial', 'fontsize': '11', }
@@ -314,6 +422,35 @@ def tree(element_dependencies, filename=None, format='svg'):
 
 
 def fault_tree_diagram(ft, filename=None, format='svg'):
+    """ Returns a fault tree diagram.
+
+    Parameters
+    ----------
+    ft : list of tuples
+        A list of the faults as a tree hierarchy. Each fault is defined in a tuple containing the fault name, type, and underlying faults (if any) in the form
+        ``("fault name", "fault name", list of fault branches)``
+        with the branches as a list in the form
+        ``["branch 1 name", "branch 2 name", ... "branch n name"]``
+        to identify the adjoining faults. All basic events will have a blank list
+        ``[]`` since they are the bottom leaves in the tree.
+
+        The top event must be in the first row, but all other events can be in any order. They may begrouped by their event paths or by hierarchical levels as convenient. Event types can be conditional "and"s, conditional "or"s, or basic events (leaves). The following spellings are recognized as valid designations for event types:
+
+        And: "And" "and" "AND" \n
+        Or: "Or" "or" "OR" \n
+        Basic: "Basic" "basic" "BASIC"
+
+    filename : string, optional
+        A filename for the output not including a filename extension. The extension will specified by the format parameter.
+    format : string, optional
+        The file format of the graphic output. Note that bitmap formats (png, bmp, or jpeg) will not be as sharp as the default svg vector format and most particularly when magnified.
+
+    Returns
+    -------
+    g : graph object view
+        Save the graph source code to file, and open the rendered result in its default viewing application. PyML calls the Graphviz API for this.
+
+    """
     verbose = False
     wrap_width = 15
     def wrap(text): return textwrap.fill(
@@ -949,6 +1086,26 @@ class Node(object):
 
 
 def critical_path_diagram(tasks, task_dependencies, filename=None, format='svg'):
+    """
+    Compute and draw the critical path between dependent tasks as the longest in duration from start to finish.
+
+    Parameters
+    ----------
+    tasks : list of tuples where each contains a task name and dictionary for duration time
+        A list of tuples where each one contains a task name and dictionary for its duration time (where keyword = "Duration" and value is a number).
+    task_dependencies : list of tuples
+        A list of tuples describing the dependency relationships between tasks. Each relationship is a tuple containing the predecessor task followed by its successor task. These must be the same named tasks in the task list input above.
+    filename : string, optional
+        A filename for the output not including a filename extension. The extension will specified by the format parameter.
+    format : string, optional
+        The file format of the graphic output. Note that bitmap formats (png, bmp, or jpeg) will not be as sharp as the default svg vector format and most particularly when magnified.
+
+    Returns
+    -------
+    g : graph object view
+        The rendered graph for display. It will be automatically displayed in Jupyter Notebooks or IPython consoles. With other Python editors it can be displayed in the associated console by typing the returned graph name (e.g., call the function with an assignment such as ``critical_path = critical_path_diagram(...)`` and then type ``critical_path`` in the console). If a filename is optionally provided, the rendered graph will also be saved as a file in the specified format. PyML calls the Graphviz API for this.
+
+    """
     node_attr = {'color': 'black', 'fontsize': '11',
                  'shape': 'box'}  # 'fontname': 'arial',
     edge_attr = {'arrowsize': '.5', 'fontname': 'arial',
@@ -1054,6 +1211,35 @@ def draw_fault_tree_diagram_quantitative(ft, filename=None, format='svg'):
     return(fault_tree_diagram(simple_ft_quantititive, filename=filename, format=format))
 
 def fault_tree_cutsets(fault_tree):
+    """ Returns a fault tree cutset.
+
+    Parameters
+    ----------
+    ft : list of tuples
+        A list of the faults as a tree hierarchy. Each fault is defined in a tuple containing the fault name, type, and underlying faults (if any) in the form
+        ``("fault name", "fault name", list of fault branches)``
+        with the branches as a list in the form
+        ``["branch 1 name", "branch 2 name", ... "branch n name"]``
+        to identify the adjoining faults. All basic events will have a blank list
+        ``[]`` since they are the bottom leaves in the tree.
+
+        The top event must be in the first row, but all other events can be in any order. They may begrouped by their event paths or by hierarchical levels as convenient. Event types can be conditional "and"s, conditional "or"s, or basic events (leaves). The following spellings are recognized as valid designations for event types:
+
+        And: "And" "and" "AND" \n
+        Or: "Or" "or" "OR" \n
+        Basic: "Basic" "basic" "BASIC"
+
+    filename : string, optional
+        A filename for the output not including a filename extension. The extension will specified by the format parameter.
+    format : string, optional
+        The file format of the graphic output. Note that bitmap formats (png, bmp, or jpeg) will not be as sharp as the default svg vector format and most particularly when magnified.
+
+    Returns
+    -------
+    cutsets : list of lists
+        Returns a list of cutsets, where each is defined as a list of events.
+
+    """
     cutsets = mocus(fault_tree)
     print("Minimal Cutsets:\nNumber  Event List")
     for num, cutset in enumerate(cutsets):
@@ -1165,14 +1351,7 @@ def mocus_init(ft):
     return(ps)
 
 def mocus(fault_tree):
-    '''
-    ===============================================================================
-        MOCUS algorithm for finding cutsets
-        Authors: Umair Siddique, Ray Madachy
-        Description: Accepts a fault tree and generates the minimal cutsets
-        License: MIT
-    ===============================================================================
-    '''
+
     verbose = False
     fault_tree_copy = deepcopy(fault_tree) # to avoid top row "and" rewrite in cs_helper
     cs = []
